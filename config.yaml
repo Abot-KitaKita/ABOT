@@ -1,0 +1,39 @@
+# ABOT assumptions. Owner: B. Every number used by the model lives here.
+# Rule: no value without a source. Unknown values stay null and the code refuses to use them.
+
+walk_speed_kmh: 4.5          # assumption, stated on slides and in the app
+walk_minutes: 15             # proposal standard: 15-minute walk
+alt_walk_speed_kmh: 4.0      # sensitivity case (slower walkers)
+referral_walk_minutes: 30    # "verified facility nearby" for the teleconsult rule
+
+equity_lambda: 0.5           # weight = 1 + lambda * (5 - wealth_quintile) / 4
+lambda_sensitivity: [0.0, 0.5, 1.0]
+
+k_max: 10
+random_draws: 200
+seed: 42
+
+# Prevalence among adults aged 30-79, as a share (0.33 = 33%).
+# low/high: use the source's uncertainty interval if it gives one; otherwise mid x 0.8 / x 1.2,
+# with source text "sensitivity assumption (+/-20%)".
+prevalence:
+  hypertension:
+    mid: 0.33
+    mid_source: "Resolve to Save Lives (2025). How to increase hypertension control 6-fold through primary health care (Philippines fact sheet), p.1: 'hypertension, their most important risk factor, affecting 33% of adults aged 30-79 (16.8M people)', citing WHO Global report on hypertension 2025. https://resolvetosavelives.org/wp-content/uploads/2025/09/873_PRTN_Philippines-Executive-Summary_Fact-Sheet_0925_Rev-A_v5.pdf (opened 2026-10-23)"
+    low: 0.264          # source gives no interval: mid x 0.8, sensitivity assumption (+/-20%)
+    low_source: "sensitivity assumption (+/-20% on the cited 0.33 mid value; no interval in source)"
+    high: 0.396         # source gives no interval: mid x 1.2, sensitivity assumption (+/-20%)
+    high_source: "sensitivity assumption (+/-20% on the cited 0.33 mid value; no interval in source)"
+  diabetes:
+    mid: 0.164          # NOTE: crude prevalence, adults 30+ (source band includes 80+; our grid is 30-79)
+    mid_source: "WHO Global Health Observatory, 'Prevalence of diabetes, crude' (NCD_DIABETES_PREVALENCE_CRUDE), Philippines, both sexes, adults 30+, 2022: 16.4% [11.9-21.5]. https://www.who.int/data/gho/data/indicators/indicator-details/GHO/prevalence-of-diabetes-crude (API query opened 2026-10-23). Age band 30+ vs our 30-79: small overstatement, stated as limitation."
+    low: 0.119          # source's own uncertainty interval (lower bound)
+    low_source: "same WHO GHO indicator, 2022 95% uncertainty interval lower bound 11.9%"
+    high: 0.215         # source's own uncertainty interval (upper bound)
+    high_source: "same WHO GHO indicator, 2022 95% uncertainty interval upper bound 21.5%"
+
+# Baseline 2 needs City Hall's location. Taken from OpenStreetMap by B; OSM id recorded here for the qa_log (owner A).
+city_hall:
+  lon: 121.0336522
+  lat: 14.5777035
+  source: "OpenStreetMap way 112549085 (amenity=townhall, name='Mandaluyong City Hall'), center point; accessed 2026-10-23"

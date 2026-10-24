@@ -1,0 +1,15 @@
+# App theme (owner C): light page, white panels, dark text, one deep teal accent.
+# Amber is left to Streamlit's warnings, so it only ever means "caution".
+[theme]
+base = "light"
+primaryColor = "#0F6E56"
+backgroundColor = "#E9EFEC"  # tinted frame; the white sheet sits on it (app.py CSS)
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#1D2B2A"
+
+[browser]
+gatherUsageStats = false
+
+# Hide the Deploy button and the developer menu, so neither shows up in the demo recording.
+[client]
+toolbarMode = "minimal"

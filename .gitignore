@@ -1,0 +1,40 @@
+# Local only: private anonymity terms (names, school, usernames). NEVER commit.
+.anon_terms.txt
+
+# Large raw downloads live on the shared drive
+data/raw/
+
+# osmnx HTTP cache (created by scripts/download_walk.py)
+cache/
+
+# Synthetic results from ABOT_DATA=fixtures runs
+results/_synthetic/
+figures/_synthetic/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+*.egg-info/
+
+# Notebooks: keep scratch work out of the repo
+*.ipynb_checkpoints/
+scratch/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Secrets and local settings
+.env
+.streamlit/secrets.toml
+
+# Media and submission files never go in the repo
+*.mp4
+*.mov
+*.pptx
+submission/

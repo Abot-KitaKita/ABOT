@@ -1,0 +1,16 @@
+# Python 3.11. Pinned: do not upgrade during the build. Ask the integrator before adding anything.
+geopandas==1.0.1
+shapely==2.0.6
+pyproj==3.7.0
+rasterio==1.4.3
+osmnx==2.0.1
+networkx==3.4.2
+pandas==2.2.3
+numpy==2.1.3
+pyarrow==18.1.0
+pyyaml==6.0.2
+streamlit==1.41.1
+folium==0.19.4
+streamlit-folium==0.24.0
+matplotlib==3.9.4
+pytest==8.3.4

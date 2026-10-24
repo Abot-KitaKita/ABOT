@@ -1,0 +1,410 @@
+/* ABOT presentation styles (owner C), following the team's UX redesign mock-up.
+ * Loaded by app.py as one <style> block. The map workspace (map, floating cards, results panel) is its own document
+ * with its own styles in app.py (MAP_CSS), because it renders inside a component iframe.
+ * Selectors are scoped to keyed containers (.st-key-*) or Streamlit's data-testid hooks, never generated class names.
+ * Dark mode: app.py renders <span class="abot-dark"> when it is on; :root:has(.abot-dark) swaps the tokens. */
+@import url("https://fonts.googleapis.com/css2?family=Funnel+Display:wght@400..800&family=Funnel+Sans:wght@300..700&display=swap");
+
+:root {
+  --page: #DCE2E0;            /* the ground behind every panel */
+  --panel: #EDF1EF;           /* large panels */
+  --card: #FFFFFF;            /* cards, pills, pop-ups */
+  --well: #F1F4F3;            /* inset groups inside a card */
+  --text: #16201F; --text-2: #34433F; --muted: #5E6E6A;
+  --edge: #7A8986;            /* input edges, 3:1 or better on card and well */
+  --rule: #E4EAE7;
+  --accent: #0F6E56; --accent-strong: #0A5442; --accent-soft: #E3F1EC; --on-accent: #FFFFFF;
+  --seg-on: #16201F; --seg-on-text: #FFFFFF;
+  --warn-paper: #FFF4D6; --warn-ink: #5E4100; --warn-rule: #E3BE62;
+  --road: #3E4B48; --lane: rgba(255,255,255,0.8);   /* the roadmap on Assumptions */
+  --raise: inset 0 1px 0 #FFFFFF, 0 0 0 1px rgba(22,32,31,0.05), 0 2px 4px rgba(22,32,31,0.08), 0 12px 24px -8px rgba(22,32,31,0.28);
+  --float: 0 2px 4px rgba(22,32,31,0.06), 0 24px 64px rgba(22,32,31,0.28);
+  --panel-shadow: inset 0 1px 0 #FFFFFF, inset 0 0 0 1px rgba(255,255,255,0.6), 0 1px 2px rgba(22,32,31,0.08), 0 8px 16px -4px rgba(22,32,31,0.10), 0 32px 64px -20px rgba(22,32,31,0.38);
+  --card-shadow: inset 0 1px 0 #FFFFFF, 0 0 0 1px rgba(22,32,31,0.05), 0 2px 4px rgba(22,32,31,0.06), 0 18px 36px -14px rgba(22,32,31,0.30);
+  --font-display: "Funnel Display", "Funnel Sans", system-ui, sans-serif;
+  --font-body: "Funnel Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --r-pill: 999px; --r-card: 24px; --r-panel: 28px; --r-control: 12px;
+}
+:root:has(.abot-dark) {
+  --page: #0B1110; --panel: #141D1C; --card: #1F2B29; --well: #16201F;
+  --text: #F3F6F5; --text-2: #C9D3CF; --muted: #A7B5B1; --edge: #6E7E7A; --rule: #2E3B38;
+  --accent: #8FD3BB; --accent-strong: #8FD3BB; --accent-soft: #1F3A33; --on-accent: #0B1110;
+  --seg-on: #F3F6F5; --seg-on-text: #16201F; --road: #3A4A47; --lane: rgba(255,255,255,0.5);
+  --raise: inset 0 1px 0 rgba(255,255,255,0.10), 0 2px 4px rgba(0,0,0,0.3), 0 12px 24px -8px rgba(0,0,0,0.6);
+  --float: 0 24px 64px rgba(0,0,0,0.6);
+  --panel-shadow: inset 0 1px 0 rgba(255,255,255,0.07), inset 0 0 0 1px rgba(255,255,255,0.04), 0 2px 6px rgba(0,0,0,0.35), 0 28px 60px -16px rgba(0,0,0,0.7);
+  --card-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 2px 4px rgba(0,0,0,0.3), 0 16px 32px -12px rgba(0,0,0,0.6);
+}
+
+/* ---- Page shell: no sidebar; a 56px header row, then the current view ---------------------------------- */
+html, body, .stApp, [data-testid="stAppViewContainer"] { background: var(--page) !important; color: var(--text); font-family: var(--font-body); }
+[data-testid="stHeader"] { display: none; }   /* Streamlit's top bar: nothing in it (toolbar hidden in config) */
+[data-testid="stElementContainer"]:has(> [data-testid="stMarkdown"] style) { display: none; }  /* this stylesheet's own row */
+[data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"], [data-testid="stExpandSidebarButton"] { display: none; }
+.block-container { padding: 16px !important; max-width: none; }
+:is([data-testid="stMain"], [data-testid="stPopoverBody"]) :is(p, li, label, input, button, td, th, dt, dd, summary) { font-family: var(--font-body); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+::selection { background: var(--accent-soft); color: var(--text); }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* Header: Plan settings pill (left), ABOT (centre), synthetic status, View menu and colour mode (right) */
+/* One grid. Streamlit writes the pixel width it measured on first draw onto every column and wrapper, so a longer
+   view name or the synthetic pill ran into ABOT; all of them go back to auto and the grid sets the widths. */
+.st-key-appbar > [data-testid="stHorizontalBlock"] { display: grid !important; align-items: center; gap: 8px 16px; min-height: 56px;
+  grid-template-columns: minmax(max-content, 1fr) max-content minmax(max-content, 1fr); }
+.st-key-appbar [data-testid="stColumn"], .st-key-appbar [data-testid="stColumn"] :is([data-testid="stVerticalBlockBorderWrapper"], [data-testid="stVerticalBlockBorderWrapper"] > div, [data-testid="stVerticalBlock"],
+  [data-testid="stElementContainer"], [data-testid="stHorizontalBlock"], [data-testid="stPopover"], [data-testid="stPopover"] > div,
+  [data-testid="stMarkdown"]) {
+  width: auto !important; min-width: 0; flex: none !important; }
+[data-testid="stMarkdownContainer"] p.abot-mark { margin: 0; text-align: center; font-family: var(--font-display); font-size: 32px; line-height: 48px; font-weight: 800; letter-spacing: 0.02em; color: var(--accent); }
+[data-testid="stMarkdownContainer"]:has(> p.abot-mark) { margin-bottom: 0; }   /* Streamlit pulls markdown up by 1rem */
+.st-key-appright [data-testid="stHorizontalBlock"] { display: flex; justify-content: flex-end; flex-wrap: nowrap; gap: 12px; }
+/* Popover triggers (Plan settings, View) as raised pills; the bold part of the label is the chip */
+[data-testid="stPopover"] > div > button, [data-testid="stPopover"] button[kind] { height: 48px; padding: 0 16px; border: 0; border-radius: var(--r-pill);
+  background: var(--card); color: var(--text); box-shadow: var(--raise); font-family: var(--font-body); }
+[data-testid="stPopover"] button p { font-size: 16px; font-weight: 600; color: var(--text); white-space: nowrap; }
+[data-testid="stPopover"] button p strong { font-size: 13px; font-weight: 500; margin-left: 8px; padding: 4px 10px; border-radius: var(--r-pill);
+  background: var(--well); font-variant-numeric: tabular-nums; }
+[data-testid="stPopover"] button:hover { background: var(--card); filter: brightness(0.98); }
+[data-testid="stPopover"] [aria-expanded="true"] > button { background: var(--seg-on); }   /* open: the pill goes dark, as in the canvas */
+[data-testid="stPopover"] [aria-expanded="true"] > button :is(p, span) { color: var(--seg-on-text); }
+[data-testid="stPopover"] [aria-expanded="true"] > button p strong { background: rgba(127,127,127,0.28); }
+[data-testid="stPopover"] button:active { transform: translateY(1px); }
+/* Streamlit's own focus style on these pills was only a green arrow: a clear ring instead */
+:is([data-testid="stPopover"], .st-key-modepick) button:focus-visible { outline: 3px solid var(--accent) !important; outline-offset: 2px; }
+[data-testid="stPopoverBody"] { background: var(--card); color: var(--text); border: 0; border-radius: var(--r-panel); box-shadow: var(--float); }
+[data-testid="stPopoverBody"] > div { background: transparent; }   /* Streamlit paints the theme background here */
+[data-testid="stPopoverBody"]:has(.st-key-planpanel) { width: min(660px, calc(100vw - 32px)); max-width: none; padding: 20px 24px; }
+[data-testid="stPopoverBody"]:has(.st-key-viewmenu) { width: 360px; padding: 8px; }
+/* Colour mode: a two-icon pill */
+.st-key-modepick [data-testid="stButtonGroup"] { padding: 4px; border-radius: var(--r-pill); background: var(--card); box-shadow: var(--raise); }
+.st-key-modepick [data-testid="stButtonGroup"] button { flex: 0 0 40px; width: 40px !important; min-width: 40px !important; height: 40px; min-height: 40px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--muted); }
+.st-key-modepick [data-testid="stButtonGroup"] button[kind$="Active"] { background: var(--seg-on); color: var(--seg-on-text); }
+.abot-synth { margin: 0; display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: var(--r-pill); white-space: nowrap;
+  background: var(--warn-paper); color: var(--warn-ink); font-size: 14px; box-shadow: inset 0 0 0 1px var(--warn-rule); }
+
+/* ---- Plan settings pop-up ------------------------------------------------------------------------------ */
+.st-key-planpanel [data-testid="stMarkdownContainer"] h2 { margin: 0; font-family: var(--font-display); font-size: 26px; font-weight: 600; letter-spacing: -0.015em; color: var(--text); padding: 0; }
+.st-key-planpanel .abot-sub { margin: 4px 0 8px; font-size: 14px; color: var(--muted); }
+.st-key-planpanel label p, .st-key-planpanel [data-testid="stWidgetLabel"] p { font-size: 14px; font-weight: 600; color: var(--text); }
+.st-key-planpanel [data-testid="stCaptionContainer"], .st-key-planpanel [data-testid="stCaptionContainer"] p, .st-key-planpanel .abot-help { font-size: 13px; line-height: 1.45; color: var(--muted); }
+.st-key-planpanel .abot-help { margin: -8px 0 0; }
+.st-key-planpanel .abot-help.abot-live { margin: 6px 0 0; color: var(--accent-strong); font-weight: 500; }
+.st-key-planpanel .abot-group { margin: 0; font-size: 14px; font-weight: 600; color: var(--text); }
+.st-key-planpanel [data-testid="stSliderThumbValue"] { display: none; }   /* the big number above shows the value */
+.st-key-planpanel [data-testid="stSliderTickBarMin"], .st-key-planpanel [data-testid="stSliderTickBarMax"] { color: var(--muted); font-family: var(--font-body); font-size: 12px; }
+.st-key-planpanel [data-testid="stExpander"] svg, .st-key-planpanel [data-testid="stTooltipIcon"] svg { color: var(--muted); }
+.st-key-planpanel input::placeholder { color: var(--muted); }
+/* Radio groups as segmented pills (the dot is hidden; the whole pill is the target) */
+.st-key-planpanel [data-testid="stRadio"], .st-key-planpanel [data-testid="stRadio"] > div { width: 100%; }
+.st-key-planpanel [role="radiogroup"] { width: 100%; display: flex; flex-wrap: nowrap; gap: 0; padding: 4px; border-radius: var(--r-pill); background: var(--well); }
+.st-key-assume [role="radiogroup"] { background: var(--card); padding: 3px; }
+.st-key-planpanel [role="radiogroup"] > label { flex: 1 1 auto; min-width: 0; justify-content: center; align-items: center; margin: 0; min-height: 38px; padding: 0 8px; border-radius: var(--r-pill); cursor: pointer; }
+.st-key-planpanel [role="radiogroup"] > label > div:first-child { display: none; }
+.st-key-planpanel [role="radiogroup"] > label p { font-size: 14px; font-weight: 500; color: var(--text-2); white-space: nowrap; }
+.st-key-planpanel [role="radiogroup"] > label:has(input:checked) { background: var(--seg-on); box-shadow: 0 2px 6px rgba(0,0,0,0.18); }
+.st-key-planpanel [role="radiogroup"] > label:has(input:checked) p { color: var(--seg-on-text); font-weight: 600; }
+.st-key-planpanel [role="radiogroup"] > label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.st-key-spots, .st-key-assume { background: var(--well); border-radius: 20px; padding: 14px 16px 10px; }
+/* Streamlit gives each widget the box's outer width; keep them inside its padding */
+.st-key-spots > [data-testid="stElementContainer"], .st-key-assume > [data-testid="stElementContainer"],
+.st-key-spots > [data-testid="stElementContainer"] > *, .st-key-assume > [data-testid="stElementContainer"] > * { width: 100% !important; }
+.abot-kbig { display: flex; justify-content: space-between; align-items: flex-end; }
+.abot-kbig span { font-size: 14px; font-weight: 600; color: var(--text); padding-bottom: 6px; }
+.abot-kbig b { font-family: var(--font-display); font-size: 48px; line-height: 1; font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; }
+.st-key-planpanel [data-testid="stExpander"] details { border: 0; border-radius: 20px; background: var(--well); }
+.st-key-planpanel [data-testid="stExpander"] summary p { font-size: 14px; font-weight: 600; color: var(--text); }
+.st-key-planpanel [data-baseweb="input"], .st-key-planpanel [data-baseweb="input"] > div { border-color: var(--edge); background: var(--card); }
+.st-key-planpanel input { color: var(--text); }
+.st-key-planpanel [data-testid="stCheckbox"] p { font-size: 14px; font-weight: 400; color: var(--text); }
+.st-key-planpanel [data-testid="stBaseButton-secondary"] { width: 100%; height: 42px; border-radius: var(--r-pill); border: 1px solid var(--edge); background: transparent; color: var(--text); }
+
+/* View menu: a radio list styled as menu rows with captions */
+.st-key-viewmenu [role="radiogroup"] { display: flex; flex-direction: column; gap: 2px; }
+.st-key-viewmenu [role="radiogroup"] > label { margin: 0; padding: 10px 12px; border-radius: 16px; cursor: pointer; align-items: flex-start; }
+.st-key-viewmenu [role="radiogroup"] > label > div:first-child { display: none; }
+.st-key-viewmenu [role="radiogroup"] > label:hover { background: var(--well); }
+.st-key-viewmenu [role="radiogroup"] > label:has(input:checked) { background: var(--accent-soft); }
+.st-key-viewmenu [role="radiogroup"] > label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: -2px; }
+.st-key-viewmenu [role="radiogroup"] p { font-size: 15px; font-weight: 600; color: var(--text); }
+.st-key-viewmenu [role="radiogroup"] [data-testid="stCaptionContainer"] p, .st-key-viewmenu [role="radiogroup"] small { font-size: 13px; font-weight: 400; color: var(--muted); }
+
+/* ---- Map view: the workspace component fills the window below the header ------------------------------- */
+/* Edge to edge below the header; the component pads itself by 16px, so the map starts 16px under the header. */
+.st-key-workspace { margin: -16px -16px -16px; width: calc(100% + 32px) !important; }
+.st-key-workspace [data-testid="stElementContainer"], .st-key-workspace [data-testid="stElementContainer"] > div { width: 100% !important; }
+.st-key-workspace iframe { display: block; width: 100% !important; height: calc(100vh - 72px) !important; min-height: 560px; border: 0; }
+@media (max-width: 900px) { .st-key-workspace iframe { height: 1640px !important; } }
+
+/* ---- Other views: one panel with cards inside -------------------------------------------------------- */
+/* One centred sheet, the same width on every view, so wide screens do not leave the content hugging the left edge */
+[data-testid="stVerticalBlockBorderWrapper"]:has(> div > .st-key-sheet) { width: 100%; max-width: 1200px; margin: 8px auto 40px;
+  background: var(--panel); border: 0 !important; border-radius: var(--r-panel); box-shadow: var(--panel-shadow); padding: 40px 48px; }
+.st-key-sheet [data-testid="stMarkdownContainer"] { color: var(--text); }
+/* The app's fonts everywhere in these views (Streamlit's own font showed through on spans, asides and cards) */
+:is(.st-key-sheet, .st-key-briefview) :is(p, li, span, b, strong, em, a, td, th, dt, dd, summary, figcaption, small, div, h4, h5, label, button):not([data-testid="stIconMaterial"]) {
+  font-family: var(--font-body); }
+:is(.st-key-sheet, .st-key-briefview) :is(.d, .cmp-num b, h1, h2, h3) { font-family: var(--font-display) !important; }
+:is(.st-key-sheet, .st-key-briefview) [data-testid="stHeaderActionElements"] { display: none; }   /* link icons on headings */
+[data-testid="stMarkdownContainer"] h2.abot-h2 { margin: 0 0 4px; padding: 0; font-family: var(--font-display); font-size: 28px; font-weight: 600; letter-spacing: -0.015em; color: var(--text); text-wrap: balance; }
+[data-testid="stMarkdownContainer"] h3.abot-h3 { margin: 24px 0 8px; padding: 0; font-family: var(--font-display); font-size: 21px; font-weight: 600; color: var(--text); text-wrap: balance; }
+.abot-lead { margin: 6px 0 12px; max-width: 100ch; font-size: 16px; line-height: 1.5; color: var(--text-2); }
+.abot-lead b { color: var(--text); }
+.abot-note { margin: 8px 0; max-width: 100ch; font-size: 13px; line-height: 1.45; color: var(--muted); }
+.abot-card { background: var(--card); border-radius: var(--r-card); box-shadow: var(--card-shadow); padding: 18px 20px; }
+.abot-scroll { overflow-x: auto; }
+[data-testid="stMarkdownContainer"] table.abot-table { width: 100%; border-collapse: collapse; border: 0; margin: 0; font-size: 14px; color: var(--text); }
+[data-testid="stMarkdownContainer"] table.abot-table th { text-align: left; font-weight: 600; color: var(--text-2); white-space: nowrap; background: none;
+  padding: 8px 16px 8px 0; border: 0; border-bottom: 1px solid var(--edge); }
+[data-testid="stMarkdownContainer"] table.abot-table td { padding: 10px 16px 10px 0; border: 0; border-bottom: 1px solid var(--rule); vertical-align: top; background: none; }
+[data-testid="stMarkdownContainer"] table.abot-table tr:last-child td { border-bottom: 0; }
+[data-testid="stMarkdownContainer"] table.abot-table .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+a.abot-link { color: var(--accent-strong); text-decoration: underline; text-underline-offset: 0.16em; }
+a.abot-link:active { color: var(--text); }
+.abot-disclose summary { cursor: pointer; display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border-radius: var(--r-pill);
+  background: var(--well); font-size: 13px; font-weight: 600; color: var(--accent-strong); list-style: none; }
+.abot-disclose summary::-webkit-details-marker { display: none; }
+.abot-disclose dl { margin: 12px 0 0; display: grid; gap: 8px; font-size: 13px; max-width: 100ch; }
+.abot-disclose dt { font-weight: 700; color: var(--text); }
+.abot-disclose dd { margin: 0; color: var(--text-2); }
+.abot-list { margin: 6px 0 12px; padding-left: 20px; max-width: 100ch; font-size: 15px; line-height: 1.5; color: var(--text-2); }
+.abot-list li { margin: 4px 0; }
+
+/* Compare: settings chips, the headline result, the chart, one card per way of picking, the uncertainty note */
+.cmp p.cmp-sub { margin: 4px 0 12px; max-width: 70ch; font-size: 16px; line-height: 1.5; color: var(--text-2); }
+.cmp ul.cmp-chips { list-style: none; margin: 0 0 20px; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.cmp ul.cmp-chips li { margin: 0; padding: 6px 12px; border-radius: var(--r-pill); background: var(--card); box-shadow: inset 0 0 0 1px var(--rule);
+  font-size: 14px; font-weight: 500; color: var(--text); }
+.sw { display: inline-block; flex: none; width: 10px; height: 10px; border-radius: 3px; background: var(--edge); }
+.sw.is-abot { background: var(--accent); }
+.cmp-hero { display: flex; align-items: center; flex-wrap: wrap; gap: 16px 28px; margin-bottom: 16px; padding: 24px 28px;
+  border-radius: var(--r-card); background: var(--card); box-shadow: var(--card-shadow); }
+.cmp p.cmp-big { margin: 0; font-size: 60px; line-height: 1; font-weight: 700; letter-spacing: -0.02em; color: var(--accent-strong); }
+.cmp p.cmp-line { margin: 0; max-width: 44ch; font-size: 18px; line-height: 1.4; color: var(--text); }
+.cmp p.cmp-vs { margin: 10px 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; font-size: 14px; color: var(--text-2); }
+.cmp-vs > span { display: inline-flex; align-items: center; gap: 6px; }
+.cmp-vs b { font-weight: 700; color: var(--text); }
+.cmp-vs .cmp-times { padding: 2px 10px; border-radius: var(--r-pill); background: var(--accent-soft); color: var(--accent-strong); font-weight: 600; }
+.cmp-card { background: var(--card); border-radius: var(--r-card); box-shadow: var(--card-shadow); padding: 20px 24px; }
+.cmp-chart { margin: 0; }
+.cmp-cap { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; font-size: 15px; color: var(--text); }
+.cmp-cap span { font-size: 13px; color: var(--muted); }
+/* Rows: name | track. The track keeps room on the right for the value label at the end of the longest bar. */
+.cmp-plot { --lab: 200px; --room: 72px; }
+.cmp-row { display: grid; grid-template-columns: var(--lab) minmax(0, 1fr); border-radius: 10px; }
+.cmp-row:hover { background: var(--well); }
+.cmp-row:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cmp-name { align-self: center; padding: 0 16px 0 8px; font-size: 15px; font-weight: 600; color: var(--text); }
+.cmp-track { position: relative; height: 58px; margin-right: var(--room); border-left: 2px solid var(--text-2); }
+.cmp-grid i { position: absolute; top: 0; bottom: 0; border-left: 1px solid var(--rule); }
+.cmp-bar { position: absolute; left: 0; top: 16px; height: 24px; border-radius: 0 4px 4px 0; background: var(--edge); }
+.cmp-bar.is-abot { background: var(--accent); }
+.cmp-val { position: absolute; top: 16px; margin-left: 8px; line-height: 24px; font-size: 16px; font-weight: 700; color: var(--text); white-space: nowrap; }
+.cmp-whisk { position: absolute; top: 48px; height: 2px; background: var(--text-2); }
+.cmp-whisk::before, .cmp-whisk::after { content: ""; position: absolute; top: -5px; height: 7px; border-left: 2px solid var(--text-2); }
+.cmp-whisk::before { left: 0; } .cmp-whisk::after { right: 0; }
+.cmp-tip { position: absolute; bottom: calc(100% - 12px); z-index: 2; transform: translateX(-50%); padding: 6px 10px; border-radius: 8px;
+  background: var(--text); color: var(--card); font-size: 13px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.12s; }
+.cmp-tip.is-start { transform: none; } .cmp-tip.is-end { transform: translateX(-100%); }
+.cmp-row:hover .cmp-tip, .cmp-row:focus-visible .cmp-tip { opacity: 1; }
+.cmp-axis { display: grid; grid-template-columns: var(--lab) minmax(0, 1fr); }
+.cmp-ticks { position: relative; height: 24px; margin-right: var(--room); border-top: 1px solid var(--edge); font-size: 12px; color: var(--muted); }
+.cmp-ticks span { position: absolute; top: 6px; transform: translateX(-50%); }
+.cmp-ticks span:first-child { transform: none; }
+.cmp p.cmp-foot { margin: 12px 0 0; font-size: 13px; line-height: 1.45; color: var(--muted); }
+.cmp-ways { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.cmp-way { display: flex; flex-direction: column; gap: 8px; }
+.cmp-way.is-abot { box-shadow: inset 0 0 0 2px var(--accent), var(--card-shadow); }
+[data-testid="stMarkdownContainer"] .cmp-way h4 { margin: 0; padding: 0; display: flex; align-items: center; gap: 8px; font-family: var(--font-body);
+  font-size: 15px; font-weight: 600; color: var(--text); }
+.cmp p.cmp-num { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.cmp-num b { font-family: var(--font-display); font-size: 34px; line-height: 1.1; font-weight: 700; color: var(--text); }
+.cmp-way.is-abot .cmp-num b { color: var(--accent-strong); }
+.cmp-num span { font-size: 13px; color: var(--muted); }
+.cmp p.cmp-how { margin: 0; font-size: 14px; line-height: 1.5; color: var(--text-2); }
+.cmp-aside { margin-top: 20px; max-width: 80ch; display: flex; flex-direction: column; gap: 4px; padding: 14px 18px; border-radius: 16px;
+  background: var(--well); font-size: 14px; line-height: 1.5; color: var(--text-2); }
+.cmp-aside b { color: var(--text); }
+
+/* Placement brief: no outer panel; a centred column with the title and download, then the brief set as a page */
+[data-testid="stVerticalBlockBorderWrapper"]:has(> div > .st-key-briefview) { width: 100%; max-width: 880px; margin: 16px auto 56px; }
+[data-testid="stMarkdownContainer"] .abot-toolbar h2 { margin: 0; padding: 0; font-family: var(--font-display); font-size: 32px; font-weight: 600;
+  letter-spacing: -0.015em; color: var(--text); }
+.abot-toolbar span { display: block; margin-top: 4px; font-size: 15px; line-height: 1.45; color: var(--muted); }
+.st-key-briefview [data-testid="stDownloadButton"] button { height: 46px; border-radius: var(--r-pill); border: 0; background: var(--accent);
+  color: var(--on-accent); box-shadow: var(--raise); }
+.st-key-briefview [data-testid="stDownloadButton"] button:hover { filter: brightness(1.08); }
+.st-key-briefview [data-testid="stDownloadButton"] button p { font-weight: 600; color: var(--on-accent); }
+[data-testid="stVerticalBlockBorderWrapper"]:has(> div > .st-key-brief_doc) { margin-top: 8px; background: var(--card); border: 0 !important;
+  border-radius: var(--r-panel); box-shadow: var(--card-shadow); padding: 52px 64px 44px; }
+.st-key-brief_doc [data-testid="stMarkdownContainer"] { color: var(--text); }
+.st-key-brief_doc :is(p, li) { font-size: 16px !important; line-height: 1.65 !important; color: var(--text-2); }
+.st-key-brief_doc strong { font-weight: 600; color: var(--text); }
+.st-key-brief_doc h1 { margin: 0 0 12px !important; padding: 0 !important; font-size: 30px !important; font-weight: 650 !important; line-height: 1.2 !important;
+  letter-spacing: -0.015em; color: var(--text); text-wrap: balance; }
+.st-key-brief_doc h1 + p { font-size: 17px !important; color: var(--text-2); }
+.st-key-brief_doc h2 { margin: 36px 0 12px !important; padding: 28px 0 0 !important; border-top: 1px solid var(--rule); font-size: 20px !important;
+  font-weight: 600 !important; line-height: 1.3 !important; color: var(--text); }
+.st-key-brief_doc ul { margin: 0 0 12px; padding: 0; list-style: none; }
+.st-key-brief_doc ul li { position: relative; margin: 6px 0; padding-left: 22px; }
+.st-key-brief_doc ul li::before { content: ""; position: absolute; left: 4px; top: 0.68em; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+.st-key-brief_doc table { width: 100%; margin: 4px 0 8px; border-collapse: collapse; border: 0; font-size: 15px; font-variant-numeric: tabular-nums; }
+.st-key-brief_doc table th, .st-key-brief_doc table td { border: 0; border-bottom: 1px solid var(--rule); background: none; vertical-align: top; text-align: left; }
+.st-key-brief_doc table th { padding: 8px 16px 10px 0; border-bottom-color: var(--edge); font-size: 12.5px; font-weight: 600; letter-spacing: 0.03em;
+  text-transform: uppercase; color: var(--muted); }
+.st-key-brief_doc table td { padding: 14px 16px 14px 0; line-height: 1.5; color: var(--text-2); }
+.st-key-brief_doc table tr:last-child td { border-bottom: 0; }
+.st-key-brief_doc table td:nth-child(4) { white-space: nowrap; color: var(--text); font-weight: 600; }
+.st-key-brief_doc a { color: var(--accent-strong); text-underline-offset: 0.16em; }
+.st-key-brief_doc blockquote { margin: 16px 0; padding: 10px 16px; border-left: 4px solid var(--warn-rule); border-radius: 10px; background: var(--warn-paper); }
+.st-key-brief_doc blockquote p { color: var(--warn-ink) !important; }
+
+/* ---- Assumptions & sources: a reference page. Text at a reading width, the roadmap wide, ruled tables for the
+   numbers, a ruled list for the data sources. No cards or pills: the content carries the page. */
+.ref-page { max-width: 1040px; margin: 0 auto; }
+.ref-page p.ref-intro { margin: 8px 0 16px; max-width: 62ch; font-size: 17px; line-height: 1.55; color: var(--text-2); }
+.ref-page p.ref-toc { margin: 0; padding-bottom: 28px; border-bottom: 1px solid var(--rule); display: flex; flex-wrap: wrap; gap: 6px 22px; font-size: 14px; }
+.ref-toc a { font-weight: 600; color: var(--accent-strong) !important; text-decoration: none !important; }
+.ref-toc a:hover { text-decoration: underline !important; text-underline-offset: 0.2em; }
+.ref-page section { padding-top: 52px; scroll-margin-top: 16px; }
+[data-testid="stMarkdownContainer"] .ref-page h3.abot-h3 { margin: 0 0 6px; font-size: 24px; letter-spacing: -0.01em; }
+[data-testid="stMarkdownContainer"] .ref-page h4.ref-h4 { margin: 40px 0 4px; padding: 0; font-family: var(--font-display); font-size: 18px; font-weight: 600; color: var(--text); }
+.ref-page p.ref-sub { margin: 0 0 14px; max-width: 70ch; font-size: 15px; line-height: 1.5; color: var(--muted); }
+.ref-page p.ref-note { margin: 24px 0 0; max-width: 72ch; font-size: 14px; line-height: 1.5; color: var(--muted); }
+/* Roadmap. Wide: 16 grid columns; pin i sits at i/8 of the road, its label spans two-eighths around it, labels
+   alternate above and below, so they tile without overlapping. Positions come from the classes s1…s7. */
+.road { display: grid; grid-template-columns: repeat(16, minmax(0, 1fr)); grid-template-rows: auto 60px 18px 60px auto; margin: 28px 0 0; }
+.road-strip { position: relative; grid-column: 1 / -1; grid-row: 3; border-radius: 9px; background: var(--road); }
+.road-strip::after { content: ""; position: absolute; left: 16px; right: 16px; top: 8px; height: 2px;
+  background: repeating-linear-gradient(90deg, var(--lane) 0 16px, transparent 16px 30px); }
+.road-pin { justify-self: center; display: flex; flex-direction: column; align-items: center; width: 36px; }
+.road-pin.up { grid-row: 2; }
+.road-pin.down { grid-row: 4; flex-direction: column-reverse; }
+.road-pin i { flex: 1; width: 2px; background: var(--edge); }
+.road-pin b { position: relative; isolation: isolate; flex: none; display: flex; align-items: center; justify-content: center; width: 34px; height: 34px;
+  margin: 0 0 9px; font-size: 15px; font-weight: 700; color: var(--on-accent); }
+.road-pin.down b { margin: 9px 0 0; }
+.road-pin b::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: 50% 50% 50% 0; background: var(--accent);
+  transform: rotate(-45deg); box-shadow: 0 0 0 3px var(--panel), 0 4px 10px rgba(0, 0, 0, 0.18); }
+.road-pin.down b::before { transform: rotate(135deg); }
+.road-stop { display: flex; flex-direction: column; gap: 4px; padding: 0 12px; text-align: center; }
+.road-stop.up { grid-row: 1; align-self: end; padding-bottom: 6px; }
+.road-stop.down { grid-row: 5; align-self: start; padding-top: 6px; }
+.road-stop b { font-size: 15px; font-weight: 650; color: var(--text); }
+.road-stop span { font-size: 14px; line-height: 1.5; color: var(--text-2); }
+.road-pin.s1 { grid-column: 2 / span 2; } .road-stop.s1 { grid-column: 1 / span 4; }
+.road-pin.s2 { grid-column: 4 / span 2; } .road-stop.s2 { grid-column: 3 / span 4; }
+.road-pin.s3 { grid-column: 6 / span 2; } .road-stop.s3 { grid-column: 5 / span 4; }
+.road-pin.s4 { grid-column: 8 / span 2; } .road-stop.s4 { grid-column: 7 / span 4; }
+.road-pin.s5 { grid-column: 10 / span 2; } .road-stop.s5 { grid-column: 9 / span 4; }
+.road-pin.s6 { grid-column: 12 / span 2; } .road-stop.s6 { grid-column: 11 / span 4; }
+.road-pin.s7 { grid-column: 14 / span 2; } .road-stop.s7 { grid-column: 13 / span 4; }
+/* Tables */
+.ref-scroll { overflow-x: auto; }
+table.ref { width: 100%; border-collapse: collapse; border: 0; margin: 0; font-size: 15px; }
+table.ref th { padding: 0 24px 10px 0; border: 0; border-bottom: 1px solid var(--edge); background: none; text-align: left; font-size: 13px;
+  font-weight: 600; color: var(--muted); white-space: nowrap; }
+table.ref td { padding: 16px 24px 16px 0; border: 0; border-bottom: 1px solid var(--rule); background: none; vertical-align: top; line-height: 1.5; color: var(--text-2); }
+table.ref tr:last-child td { border-bottom: 0; }
+table.ref :is(th, td):last-child { padding-right: 0; }
+table.ref td b { display: block; font-weight: 600; color: var(--text); }
+table.ref td small { display: block; margin-top: 3px; font-size: 13px; line-height: 1.45; color: var(--muted); }
+table.ref .val { white-space: nowrap; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+table.ref .r { text-align: right; }
+table.ref .val.mid { color: var(--accent-strong); }
+/* Data sources: who publishes it on the left, what ABOT uses it for on the right */
+ul.ds { list-style: none; margin: 14px 0 0; padding: 0; border-top: 1px solid var(--edge); }
+ul.ds li { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 6px 40px; margin: 0; padding: 18px 0; border-bottom: 1px solid var(--rule); }
+ul.ds li:last-child { border-bottom: 0; }
+.ds-who b { display: block; font-size: 15px; font-weight: 600; line-height: 1.4; }
+.ds-who span { display: block; margin-top: 3px; font-size: 14px; line-height: 1.45; color: var(--muted); }
+.ref-page .ds-what p { margin: 0; font-size: 15px; line-height: 1.5; color: var(--text-2); }
+.ds-what p span { color: var(--muted); }
+.ds-what small { display: block; margin-top: 4px; font-size: 13px; line-height: 1.45; color: var(--muted); }
+/* Limitations: two columns of ruled lines */
+ul.lim { list-style: none; margin: 14px 0 0; padding: 0; columns: 2; column-gap: 48px; }
+ul.lim li { break-inside: avoid; margin: 0; padding: 12px 0; border-top: 1px solid var(--rule); font-size: 15px; line-height: 1.5; color: var(--text-2); }
+/* Technical details */
+details.tech { margin-top: 10px; }
+details.tech summary { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; list-style: none; font-size: 15px; font-weight: 600; color: var(--accent-strong); }
+details.tech summary::-webkit-details-marker { display: none; }
+details.tech summary::after { content: ""; width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+  transform: translateY(-2px) rotate(45deg); transition: transform 0.15s; }
+details.tech[open] summary::after { transform: translateY(2px) rotate(-135deg); }
+details.tech dl { margin: 18px 0 0; display: grid; gap: 14px; max-width: 80ch; font-size: 14px; line-height: 1.5; }
+details.tech dt { font-weight: 600; color: var(--text); }
+details.tech dd { margin: 2px 0 0; color: var(--text-2); overflow-wrap: anywhere; }
+@media (max-width: 900px) {
+  /* The road runs down the left; each pin sits on it beside its step */
+  .road { grid-template-columns: 44px minmax(0, 1fr); grid-template-rows: none; column-gap: 14px; row-gap: 22px; }
+  .road-strip { grid-column: 1; grid-row: 1 / span 7; justify-self: center; width: 16px; border-radius: 8px; }
+  .road-strip::after { left: 7px; right: auto; top: 14px; bottom: 14px; width: 2px; height: auto;
+    background: repeating-linear-gradient(180deg, var(--lane) 0 14px, transparent 14px 26px); }
+  .road-pin, .road-pin.down { grid-column: 1; align-self: start; flex-direction: column; }
+  .road-pin i { display: none; }
+  .road-pin b, .road-pin.down b { margin: 0; }
+  .road-pin b::before, .road-pin.down b::before { border-radius: 50%; transform: none; }
+  .road-stop, .road-stop.up, .road-stop.down { grid-column: 2; align-self: start; padding: 5px 0 0; text-align: left; }
+  .road .s1 { grid-row: 1; }
+  .road .s2 { grid-row: 2; }
+  .road .s3 { grid-row: 3; }
+  .road .s4 { grid-row: 4; }
+  .road .s5 { grid-row: 5; }
+  .road .s6 { grid-row: 6; }
+  .road .s7 { grid-row: 7; }
+  .road .road-pin[class*=" s"] { grid-column: 1; } .road .road-stop[class*=" s"] { grid-column: 2; }
+  ul.lim { columns: 1; }
+}
+@media (max-width: 640px) {
+  ul.ds li { grid-template-columns: minmax(0, 1fr); }
+  table.ref { min-width: 560px; }
+}
+
+/* Streamlit's own info/error boxes, toned to the panels */
+[data-testid="stAlert"] { border-radius: var(--r-card); }
+
+@media (max-width: 640px) {
+  .st-key-appbar [data-testid="stHorizontalBlock"] { gap: 8px; }
+  [data-testid="stMarkdownContainer"] p.abot-mark { line-height: 40px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* Narrow screens: ABOT on its own row, then Plan settings, then View and colour mode */
+[data-testid="stPopoverBody"] { max-height: calc(100vh - 96px); overflow-y: auto; }
+@media (min-width: 641px) and (max-width: 1000px) {
+  [data-testid="stPopover"] button p strong { display: none; }
+  .abot-synth span { display: none; }
+  .st-key-appbar > [data-testid="stHorizontalBlock"] { grid-template-columns: max-content minmax(max-content, 1fr) max-content; }
+  /* Synthetic data (development only): the pill and a long view name do not fit beside ABOT, so the right group
+     takes a second row */
+  .st-key-appbar:has(.abot-synth) > [data-testid="stHorizontalBlock"] { grid-template-columns: max-content minmax(max-content, 1fr); }
+  .st-key-appbar:has(.abot-synth) > [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(3) { grid-column: 1 / -1; }
+}
+@media (max-width: 640px) {
+  .st-key-appbar > [data-testid="stHorizontalBlock"] { grid-template-columns: minmax(0, 1fr); }
+  .st-key-appbar > [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]:nth-child(2) { order: -1; }
+  .st-key-appright [data-testid="stHorizontalBlock"] { justify-content: flex-start; flex-wrap: wrap; row-gap: 8px; }
+  .abot-synth span { display: none; }
+  /* Long pill labels wrap instead of running past the box */
+  .st-key-planpanel [role="radiogroup"] > label { flex: 1 1 0; }
+  .st-key-planpanel [role="radiogroup"] > label p { white-space: normal; text-align: center; line-height: 1.2; }
+  /* Compare: the name above its bar, so the bar gets the full width */
+  .cmp-plot { --lab: 0px; --room: 52px; }
+  .cmp-row, .cmp-axis { grid-template-columns: minmax(0, 1fr); }
+  .cmp-name { padding: 10px 0 0 8px; }
+  .cmp-axis .cmp-name { display: none; }
+  .cmp-track { height: 50px; margin-left: 8px; }
+  .cmp-bar, .cmp-val { top: 8px; } .cmp-whisk { top: 40px; }
+  .cmp-ticks { margin-left: 8px; }
+  .cmp-hero, .cmp-card { padding: 18px; }
+  [data-testid="stVerticalBlockBorderWrapper"]:has(> div > .st-key-sheet) { padding: 24px 18px; }
+  [data-testid="stVerticalBlockBorderWrapper"]:has(> div > .st-key-brief_doc) { padding: 28px 20px; }
+  .st-key-brief_doc h1 { font-size: 24px !important; }
+  .st-key-brief_doc table { display: block; overflow-x: auto; }   /* scrolls sideways inside the page */
+  .st-key-brief_doc table td:not(:first-child) { min-width: 120px; }
+  .st-key-brief_doc table td:nth-child(2) { min-width: 170px; }
+  .cmp p.cmp-big { font-size: 44px; }
+  /* Tables scroll sideways in their card rather than squeezing the description column to a few words */
+  .abot-scroll table.abot-table { min-width: 600px; }
+}

@@ -1,0 +1,30 @@
+# Data QA log
+
+One row per check. Record failures too, and what was done about them.
+
+| When | File | Check | Result | Action |
+| --- | --- | --- | --- | --- |
+| Fri 23 Oct | grid.parquet | Total population vs PSA 2020 census total for Mandaluyong (cite the PSA page) | PASS. Grid total 411,208. Adults 30-79 total 177,708. PSA total 425,758 on 1 May 2020, from https://rssoncr.psa.gov.ph/content/2020-census-population-and-housing-results-city-mandaluyong. Accepted band 361,894 to 489,622. | The grid was not scaled to the census. |
+| Fri 23 Oct | grid.parquet | No null `psgc`; every cell inside the city boundary | 1,133 cells. `psgc` is text. Null count 0. All 27 barangays are present. 17 centroids fell outside a polygon and were assigned to the nearest barangay. The build stops if that distance is over 200 m. | The distances of those 17 cells were not saved. |
+| Fri 23 Oct | barangay shapes | Three PSGC codes sit inside their own polygon, and the same points match OpenStreetMap place names | Addition Hills 137401001 at 121.03707, 14.58655 is inside its polygon. OpenStreetMap names that point Addition Hills, on Fabella Road in Welfareville Compound. Hulo 137401014 at 121.03055, 14.57201 is inside its polygon. OpenStreetMap names that point Hulo, at Tivoli Garden Residences. Wack-wack Greenhills 137401027 at 121.05182, 14.58990 is inside its polygon. OpenStreetMap names that point Wack-Wack Greenhills, at Wack Wack Golf and Country Club on Ortigas Avenue. | The place names come from an OpenStreetMap reverse lookup on 23 Oct 2026. The spelling on the map is Wack-Wack. Our table says Wack-wack. |
+| Fri 23 Oct | facilities.geojson | Count by type; cross-check against the DOH list | 42 points. clinic 18, doctors 11, health_post 10, hospital 3. Hospitals are the only rows with counted false. CCHAIN DOH counts for 2013-01-01 sum to 43. | Difference versus the 2013 count is 1. This row describes the file before the public-care rule. |
+| Fri 23 Oct | facilities.geojson | Re-apply the public-care rule | 14 of 42 rows have counted true. The 10 health_post rows count. Four clinic rows count because the name says health centre: Burol, Mauway, Namayan, and San Jose. | The other 28 stay listed and counted false. |
+| Fri 23 Oct | 2022 DOH Data Drop page | Look for a facility point file to compare with the 42 map points | The Open Data Philippines page for 19 Nov 2022 returned the site shell and no file list. The usual Data Drop files are case reports, hospital bed reports, testing totals, and quarantine-facility bed reports. | No clinic point file was opened. The 42 points were not matched name by name. |
+| Fri 23 Oct | candidates.geojson | Count by kind; duplicates within 50 m removed | 135 points after the 50 m dedup. school 53, court 34, barangay_hall 32, community_centre 16. No empty psgc. | 32 halls for 27 barangays. Halls more than 50 m apart were both kept. |
+| Fri 23 Oct | candidates.geojson | Drop the six named private schools | 129 points remain. The six names are gone. Mandaluyong City College and Rizal Technological University remain. | The grid and the 14 counted facilities were not rebuilt. |
+| Fri 23 Oct | candidates.geojson | Names shared by more than one site | 17 sites share 6 names. Addition Hills Barangay Hall 3, Court (Addition Hills) 5, Court (Hulo) 3, Court (Highway Hills) 2, Court (Mauway) 2, Court (Pleasant Hills) 2. | The file was not changed. The app adds a direction so those cards can be told apart. |
+| Fri 23 Oct | candidates.geojson | Makati Hope Christian School, site 5 | cand_id node/13810839431, kind school, point 121.0583413, 14.5850482. The point is inside the Wack-wack Greenhills polygon, psgc 137401027. Wack-wack Greenhills is in Mandaluyong. | The name is not the location. The site stays. It was not on the six-name drop list. |
+| Fri 23 Oct | config.yaml | City Hall location from OSM (record OSM id) | OSM way 112549085, amenity=townhall, centre 121.0336522, 14.5777035 (taken by B) | done |
+| Fri 23 Oct | wealth and Ookla tables | One year covers every Mandaluyong barangay | Wealth rwi_mean year 2022, 27 of 27. Ookla mobile download year 2022, 27 of 27. | Quintiles and terciles are ranked inside the city. Lowest wealth and slowest mobile speed get bin 1. |
+
+## Known data issues
+
+- CCHAIN `geoportal_doh_poi_health.csv` stores barangay counts dated 2013-01-01. It does not store facility points. Facility points come from OpenStreetMap on 23 Oct 2026.
+- The 19 Nov 2022 DOH Data Drop page did not show a clinic point file. The 42 map points were not matched to it.
+- A WorldPop file under 100 MB is an unfinished download. `abot.build_grid.assert_full_raster` refuses it. A partial file can still open as a TIFF.
+- 17 cell centroids sit just outside a barangay polygon. Each was assigned to the nearest barangay, and none was far enough to stop the build.
+- Wack-wack Greenhills is wealth group 1 because the groups are a rank inside the city only. Its 2022 mean is 0.759 and its median is 0.763. The golf course did not pull the average down. The score was not changed.
+- The wealth groups span a narrow city range (0.672–0.801), and the five recommended sites are the same with the equity weight off, at 0.5 or at 1.0, so the wealth grouping does not drive the picks.
+- Private schools are removed by name; others whose names do not show it may remain. Mandaluyong City College stays. It is the city college, also called Mandaluyong College of Science and Technology, established by city ordinance. Rizal Technological University stays. It is a state university under Republic Act 8365. Dropped names: St. Augustine School of Nursing, La Salle Green Hills, St. Therese Private School, Don Bosco Technical College, International Baptist College, International Baptists College.
+- 17 candidate sites share 6 names. The candidate file was not edited for that. The app tells those sites apart by direction.
+- Makati Hope Christian School remains site 5. The point is inside Wack-wack Greenhills, which is in Mandaluyong. The word Makati in the name is not its location. It was not on the drop list, and it was not removed.

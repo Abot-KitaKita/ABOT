@@ -1,0 +1,9 @@
+[project]
+name = "abot"
+version = "0.1.0"
+description = "Chronic-care access planner prototype for Mandaluyong City"
+requires-python = ">=3.11,<3.12"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"

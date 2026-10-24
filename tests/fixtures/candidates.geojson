@@ -1,0 +1,15 @@
+{
+"type": "FeatureCollection",
+"name": "candidates",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "cand_id": "CSYN1", "name": "Synthetic site 1", "kind": "barangay_hall", "psgc": "SYN-3" }, "geometry": { "type": "Point", "coordinates": [ 121.026291098544775, 14.581306960533841 ] } },
+{ "type": "Feature", "properties": { "cand_id": "CSYN2", "name": "Synthetic site 2", "kind": "school", "psgc": "SYN-3" }, "geometry": { "type": "Point", "coordinates": [ 121.030954355979674, 14.578635256550815 ] } },
+{ "type": "Feature", "properties": { "cand_id": "CSYN3", "name": "Synthetic site 3", "kind": "community_centre", "psgc": "SYN-1" }, "geometry": { "type": "Point", "coordinates": [ 121.033761880100613, 14.57594783780953 ] } },
+{ "type": "Feature", "properties": { "cand_id": "CSYN4", "name": "Synthetic site 4", "kind": "court", "psgc": "SYN-4" }, "geometry": { "type": "Point", "coordinates": [ 121.036489276727707, 14.582296595302257 ] } },
+{ "type": "Feature", "properties": { "cand_id": "CSYN5", "name": "Synthetic site 5", "kind": "barangay_hall", "psgc": "SYN-2" }, "geometry": { "type": "Point", "coordinates": [ 121.041208364057127, 14.573299303265683 ] } },
+{ "type": "Feature", "properties": { "cand_id": "CSYN6", "name": "Synthetic site 6", "kind": "school", "psgc": "SYN-4" }, "geometry": { "type": "Point", "coordinates": [ 121.042096261695505, 14.577825203213619 ] } },
+{ "type": "Feature", "properties": { "cand_id": "CSYN7", "name": "Synthetic site 7", "kind": "community_centre", "psgc": "SYN-1" }, "geometry": { "type": "Point", "coordinates": [ 121.029171018113416, 14.570487046624789 ] } },
+{ "type": "Feature", "properties": { "cand_id": "CSYN8", "name": "Synthetic site 8", "kind": "court", "psgc": "SYN-2" }, "geometry": { "type": "Point", "coordinates": [ 121.038400956304187, 14.575986827593631 ] } }
+]
+}
